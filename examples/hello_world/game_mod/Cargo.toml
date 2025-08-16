@@ -1,0 +1,12 @@
+[package]
+name = "game_mod"
+edition.workspace = true
+version.workspace = true
+
+[lib]
+crate-type = ["cdylib"]  # Mods are compiled as WebAssembly modules
+
+[dependencies]
+bevy = { workspace = true }
+modapi = { path = "../../../modapi" }
+modmacros = { path = "../../../modmacros" }

@@ -1,0 +1,17 @@
+[workspace]
+resolver = "3"
+members = [
+    "examples/hello_world/game_mod",
+    "examples/hello_world/host",
+    "modapi",
+    "modmacros",
+    "modruntime"
+]
+
+[workspace.package]
+edition = "2024"
+version = "0.16.0"
+
+[workspace.dependencies]
+bevy = "0.16"
+anyhow = "1.0"

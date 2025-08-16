@@ -1,0 +1,8 @@
+[package]
+name = "host"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+bevy = { workspace = true }
+modruntime = { path = "../../../modruntime" }

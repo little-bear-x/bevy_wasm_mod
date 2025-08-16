@@ -1,0 +1,8 @@
+[package]
+name = "modapi"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+bevy = { workspace = true }
+modmacros = { path = "../modmacros" }
