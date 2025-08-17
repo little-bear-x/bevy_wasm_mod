@@ -9,14 +9,12 @@ use modapi::*;
 
 #[system]
 pub fn example_system() {
-    // In a real mod, we'd need to use a different logging mechanism
-    // that works in WASM. For now, we'll keep this as a placeholder.
-    // info!("A info message from mod");
+    log_info!("A info message from mod");
 }
 
 #[system]
 pub fn example_system_two() {
-    // info!("A info message from example system two");
+    log_warn!("A info message from example system two");
 }
 
 // Define the mod and list all its systems

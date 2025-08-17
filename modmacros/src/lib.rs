@@ -23,6 +23,11 @@ pub fn system(_args: TokenStream, input: TokenStream) -> TokenStream {
 
     // Generate the export function name
     let export_fn_name = quote::format_ident!("__mod_export_system_{}", fn_name);
+    // Generate the get info function name
+    let info_fn_name = quote::format_ident!("__mod_info_system_{}", fn_name);
+
+    // Convert function name to string for SystemInfo
+    let fn_name_str = export_fn_name.to_string();
 
     // Generate the output tokens
     let expanded = quote! {
@@ -32,7 +37,34 @@ pub fn system(_args: TokenStream, input: TokenStream) -> TokenStream {
         // Generate the export function
         #[unsafe(no_mangle)]
         pub extern "C" fn #export_fn_name() {
+            // Call the original function
             #fn_name();
+        }
+
+        // Get system info
+        #[unsafe(no_mangle)]
+        pub extern "C" fn #info_fn_name() -> *const SystemInfo {
+            // Use a static variable to store the SystemInfo to ensure it lives long enough
+            static mut SYSTEM_INFO: Option<SystemInfo> = None;
+            static INIT: std::sync::Once = std::sync::Once::new();
+
+            unsafe {
+                INIT.call_once(|| {
+                    let mut info = SystemInfo {
+                        export_name: [0; 64],
+                    };
+
+                    // Copy the function name into the array, ensuring it's null-terminated
+                    let name_bytes = #fn_name_str.as_bytes();
+                    let len = name_bytes.len().min(63); // Leave space for null terminator
+                    info.export_name[..len].copy_from_slice(&name_bytes[..len]);
+                    info.export_name[len] = 0; // Null terminator
+
+                    SYSTEM_INFO = Some(info);
+                });
+
+                SYSTEM_INFO.as_ref().unwrap() as *const SystemInfo
+            }
         }
     };
 

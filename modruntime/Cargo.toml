@@ -8,3 +8,4 @@ bevy = { workspace = true }
 wasmtime = { version = "35.0", features = ["cranelift"] }
 serde = { version = "1.0", features = ["derive"] }
 anyhow = { workspace = true }
+modtypes = { path = "../modtypes" }

@@ -9,6 +9,7 @@ use modruntime::WasmModPlugin;
 
 fn main() {
     App::new()
+        .add_plugins(MinimalPlugins)
         .add_plugins(LogPlugin::default())
         .add_plugins(WasmModPlugin::default().add_mod_path(
             "/home/PulseX/Projects/bevy_mod/target/wasm32-unknown-unknown/debug/game_mod.wasm",

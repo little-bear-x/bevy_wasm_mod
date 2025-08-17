@@ -3121,6 +3121,7 @@ version = "0.16.0"
 dependencies = [
  "bevy",
  "modmacros",
+ "modtypes",
 ]
 
 [[package]]
@@ -3138,9 +3139,14 @@ version = "0.16.0"
 dependencies = [
  "anyhow",
  "bevy",
+ "modtypes",
  "serde",
  "wasmtime",
 ]
+
+[[package]]
+name = "modtypes"
+version = "0.16.0"
 
 [[package]]
 name = "naga"
