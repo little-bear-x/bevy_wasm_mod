@@ -7,6 +7,10 @@ name = "accesskit"
 version = "0.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "becf0eb5215b6ecb0a739c31c21bd83c4f326524c9b46b7e882d77559b60a529"
+dependencies = [
+ "enumn",
+ "serde",
+]
 
 [[package]]
 name = "accesskit_consumer"
@@ -351,6 +355,7 @@ dependencies = [
  "bevy_derive",
  "bevy_ecs",
  "bevy_reflect",
+ "serde",
 ]
 
 [[package]]
@@ -736,6 +741,7 @@ dependencies = [
  "bevy_utils",
  "derive_more",
  "log",
+ "serde",
  "smol_str",
  "thiserror 2.0.14",
 ]
@@ -1263,6 +1269,7 @@ dependencies = [
  "bytemuck",
  "derive_more",
  "nonmax",
+ "serde",
  "smallvec",
  "taffy",
  "thiserror 2.0.14",
@@ -1327,11 +1334,32 @@ dependencies = [
  "cfg-if",
  "crossbeam-channel",
  "raw-window-handle",
+ "serde",
  "tracing",
  "wasm-bindgen",
  "web-sys",
  "wgpu-types",
  "winit",
+]
+
+[[package]]
+name = "bincode"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "36eaf5d7b090263e8150820482d5d93cd964a81e4019913c972f4edcc6edb740"
+dependencies = [
+ "bincode_derive",
+ "serde",
+ "unty",
+]
+
+[[package]]
+name = "bincode_derive"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bf95709a440f45e986983918d0e8a1f30a9b1df04918fc828670606804ac3c09"
+dependencies = [
+ "virtue",
 ]
 
 [[package]]
@@ -2198,6 +2226,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "enumn"
+version = "0.1.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2f9ed6b3789237c8a0c1c505af1c7eb2c560df6186f01b098c3a1064ea532f38"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "equivalent"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2422,8 +2461,16 @@ name = "game_mod"
 version = "0.16.0"
 dependencies = [
  "bevy",
+ "game_sdk",
  "modapi",
- "modmacros",
+]
+
+[[package]]
+name = "game_sdk"
+version = "0.16.0"
+dependencies = [
+ "bevy",
+ "modsdk",
 ]
 
 [[package]]
@@ -2744,7 +2791,10 @@ name = "host"
 version = "0.16.0"
 dependencies = [
  "bevy",
+ "bincode",
+ "linkme",
  "modruntime",
+ "serde",
 ]
 
 [[package]]
@@ -3000,6 +3050,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "linkme"
+version = "0.3.33"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a1b1703c00b2a6a70738920544aa51652532cacddfec2e162d2e29eae01e665c"
+dependencies = [
+ "linkme-impl",
+]
+
+[[package]]
+name = "linkme-impl"
+version = "0.3.33"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04d55ca5d5a14363da83bf3c33874b8feaa34653e760d5216d7ef9829c88001a"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "linux-raw-sys"
 version = "0.4.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3120,12 +3190,12 @@ name = "modapi"
 version = "0.16.0"
 dependencies = [
  "bevy",
- "modmacros",
+ "modapi_macros",
  "modtypes",
 ]
 
 [[package]]
-name = "modmacros"
+name = "modapi_macros"
 version = "0.16.0"
 dependencies = [
  "bevy",
@@ -3139,9 +3209,38 @@ version = "0.16.0"
 dependencies = [
  "anyhow",
  "bevy",
+ "bincode",
+ "linkme",
+ "modruntime_macros",
  "modtypes",
  "serde",
  "wasmtime",
+]
+
+[[package]]
+name = "modruntime_macros"
+version = "0.16.0"
+dependencies = [
+ "bincode",
+ "linkme",
+ "quote",
+ "serde",
+ "syn",
+]
+
+[[package]]
+name = "modsdk"
+version = "0.16.0"
+dependencies = [
+ "modsdk_macros",
+]
+
+[[package]]
+name = "modsdk_macros"
+version = "0.16.0"
+dependencies = [
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -4793,6 +4892,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ebc1c04c71510c7f702b52b7c350734c9ff1295c464a03335b00bb84fc54f853"
 
 [[package]]
+name = "unty"
+version = "0.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d49784317cd0d1ee7ec5c716dd598ec5b4483ea832a2dced265471cc0f690ae"
+
+[[package]]
 name = "uuid"
 version = "1.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4832,6 +4937,12 @@ name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
+
+[[package]]
+name = "virtue"
+version = "0.0.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "051eb1abcf10076295e815102942cc58f9d5e3b4560e46e53c21e8ff6f3af7b1"
 
 [[package]]
 name = "walkdir"

@@ -1,17 +1,27 @@
 [workspace]
 resolver = "3"
 members = [
-    "examples/hello_world/game_mod",
-    "examples/hello_world/host",
     "modapi",
-    "modmacros",
-    "modruntime"
-, "modtypes"]
+    "modapi_macros",
+    "modruntime", 
+    "modruntime_macros", 
+    "modsdk", 
+    "modsdk_macros",
+    "modtypes",
+    "examples/hello_world/game_mod", 
+    "examples/hello_world/game_sdk",
+    "examples/hello_world/host"
+]
 
 [workspace.package]
 edition = "2024"
 version = "0.16.0"
 
 [workspace.dependencies]
-bevy = "0.16"
+bevy = { version = "0.16", features = ["serialize"] }
 anyhow = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+bincode = { version = "2.0", features = ["serde"] }
+linkme = "0.3"
+quote = "1.0"
+syn = { version = "2.0", features = ["full", "extra-traits"] }

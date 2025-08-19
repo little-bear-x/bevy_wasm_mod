@@ -1,12 +1,8 @@
 [package]
-name = "modmacros"
+name = "game_sdk"
 edition.workspace = true
 version.workspace = true
 
-[lib]
-proc-macro = true
-
 [dependencies]
 bevy = { workspace = true }
-syn = "2.0"
-quote = "1.0"
+modsdk = { path = "../../../modsdk" }

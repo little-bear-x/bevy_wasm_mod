@@ -4,6 +4,7 @@
 //! It handles WebAssembly sandboxing and communication between mods and the host application.
 
 mod utils;
+mod component;
 
 use bevy::prelude::*;
 use modtypes::SystemInfo;
@@ -11,9 +12,13 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::RwLock;
 use utils::*;
-use wasmtime::Linker;
-use wasmtime::TypedFunc;
-use wasmtime::{Engine, Instance, Module, Store};
+use wasmtime::{Linker, TypedFunc, Engine, Instance, Module, Store};
+
+// Re-export component registry and registration
+pub use component::{COMPONENT_REGISTRY, ComponentRegistration};
+
+// Re-export the mod_component macro
+pub use modruntime_macros::mod_component;
 
 /// Plugin for mod
 #[derive(Debug, Resource, Clone)]
@@ -102,7 +107,7 @@ fn load_all_mod(
                 error!("Error in link mod '{}' __mod_log: {}", mod_path, e);
             }
         };
-
+        
         // Create a store
         let store = Store::new(&engine, ());
         let store_arc = Arc::new(RwLock::new(store));
@@ -216,3 +221,4 @@ fn execute_mod_systems(mut mod_systems: ResMut<ModSystems>, r_loaded_mods: Res<L
         }
     }
 }
+

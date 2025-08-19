@@ -6,6 +6,9 @@ version.workspace = true
 [dependencies]
 bevy = { workspace = true }
 wasmtime = { version = "35.0", features = ["cranelift"] }
-serde = { version = "1.0", features = ["derive"] }
+serde = { workspace = true }
 anyhow = { workspace = true }
 modtypes = { path = "../modtypes" }
+modruntime_macros = { path = "../modruntime_macros" }
+linkme = { workspace = true }
+bincode = { workspace = true }

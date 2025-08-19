@@ -4,7 +4,7 @@
 //! Mod developers will use this crate to create their mods.
 
 // Re-export the macros
-pub use modmacros::{mod_def, system};
+pub use modapi_macros::{mod_def, system};
 pub use modtypes::{LogLevel, LogMessage, SystemInfo};
 
 unsafe extern "C" {
@@ -70,6 +70,21 @@ macro_rules! log_error {
             unsafe {
                 __mod_log(c_str.as_ptr() as *const u8, c_str.as_bytes().len(), 3);
             }
+        }
+    };
+}
+
+/// Query macro for querying components from the host
+#[macro_export]
+macro_rules! query {
+    ($($component:ty),+) => {
+        {
+            // Get component IDs
+            let component_ids: &[&str] = &[$(<$component>::component_id()),+];
+            // In a real implementation, this would communicate with the host to query components
+            // For now, we'll return an empty iterator as a placeholder
+            // TODO: Implement actual query functionality
+            std::iter::empty::<($($component),+)>()
         }
     };
 }

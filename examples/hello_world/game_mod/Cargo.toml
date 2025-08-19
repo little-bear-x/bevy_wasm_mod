@@ -9,4 +9,4 @@ crate-type = ["cdylib"]  # Mods are compiled as WebAssembly modules
 [dependencies]
 bevy = { workspace = true }
 modapi = { path = "../../../modapi" }
-modmacros = { path = "../../../modmacros" }
+game_sdk = { path = "../game_sdk" }

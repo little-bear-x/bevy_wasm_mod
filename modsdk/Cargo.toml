@@ -1,0 +1,7 @@
+[package]
+name = "modsdk"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+modsdk_macros = { path = "../modsdk_macros" }

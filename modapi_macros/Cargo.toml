@@ -1,9 +1,12 @@
 [package]
-name = "modapi"
+name = "modapi_macros"
 edition.workspace = true
 version.workspace = true
 
+[lib]
+proc-macro = true
+
 [dependencies]
 bevy = { workspace = true }
-modapi_macros = { path = "../modapi_macros" }
-modtypes = { path = "../modtypes" }
+quote = { workspace = true }
+syn = { workspace = true }
