@@ -4,6 +4,8 @@ use modtypes::SystemInfo;
 use std::mem;
 use wasmtime::{Instance, Result, Store, TypedFunc};
 
+use crate::ModState;
+
 /// Get system names in a mod
 pub(crate) fn get_systems<T>(mut store: &mut Store<T>, instance: &Instance) -> Result<Vec<String>> {
     let get_count: TypedFunc<(), u32> =
@@ -130,7 +132,12 @@ pub(crate) fn get_mod_name<T>(mut store: &mut Store<T>, instance: &Instance) -> 
 }
 
 /// Handle log
-pub fn host_handle_log(mut caller: wasmtime::Caller<'_, ()>, ptr: i32, len: i32, level: i32) {
+pub fn host_handle_log(
+    mut caller: wasmtime::Caller<'_, ModState>,
+    ptr: i32,
+    len: i32,
+    level: i32,
+) {
     let memory = caller.get_export("memory").unwrap().into_memory().unwrap();
     let mem_data = memory.data(&mut caller);
     let bytes = &mem_data[ptr as usize..(ptr + len) as usize];

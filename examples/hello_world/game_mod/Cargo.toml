@@ -7,6 +7,6 @@ version.workspace = true
 crate-type = ["cdylib"]  # Mods are compiled as WebAssembly modules
 
 [dependencies]
-bevy = { workspace = true }
+bevy_math = "0.16"
 modapi = { path = "../../../modapi" }
 game_sdk = { path = "../game_sdk" }

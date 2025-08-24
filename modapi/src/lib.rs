@@ -5,7 +5,7 @@
 
 // Re-export the macros
 pub use modapi_macros::{mod_def, system};
-pub use modtypes::{LogLevel, LogMessage, SystemInfo};
+pub use modtypes::SystemInfo;
 
 unsafe extern "C" {
     /// Mod load function

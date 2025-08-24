@@ -27,7 +27,7 @@ fn main() {
         // .add_plugins(MinimalPlugins)
         .add_plugins(LogPlugin::default())
         .add_plugins(WasmModPlugin::default().add_mod_path(
-            "/home/PulseX/Projects/bevy_mod/target/wasm32-unknown-unknown/debug/game_mod.wasm",
+            "/home/PulseX/Projects/bevy_wasm_mod/target/wasm32-wasip1/debug/game_mod.wasm",
         ))
         .add_systems(Startup, print_component_registry)
         .run();

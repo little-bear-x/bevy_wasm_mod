@@ -7,6 +7,5 @@ version.workspace = true
 proc-macro = true
 
 [dependencies]
-bevy = { workspace = true }
 quote = { workspace = true }
 syn = { workspace = true }

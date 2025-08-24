@@ -3,7 +3,12 @@ name = "modapi"
 edition.workspace = true
 version.workspace = true
 
+[package.metadata.component]
+package = "bevy:mod-api"
+
+[package.metadata.component.target]
+world = "src/wit/world.wit"
+
 [dependencies]
-bevy = { workspace = true }
 modapi_macros = { path = "../modapi_macros" }
 modtypes = { path = "../modtypes" }

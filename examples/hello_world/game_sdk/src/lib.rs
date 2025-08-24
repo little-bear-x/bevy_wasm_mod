@@ -5,7 +5,7 @@
 use modsdk::component;
 
 #[component(id = "square")]
-pub struct Square(pub bevy::math::Vec2);
+pub struct Square(pub bevy_math::Vec2);
 
 #[component(id = "rect")]
-pub struct Rect(pub bevy::math::IVec2);
+pub struct Rect(pub bevy_math::IVec2);
