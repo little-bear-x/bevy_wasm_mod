@@ -20,25 +20,28 @@ pub fn mod_component(args: TokenStream, input: TokenStream) -> TokenStream {
     };
 
     // Generate a unique static variable name using a hash of the struct name
-    let static_name = format!("__MOD_COMPONENT_REGISTRATION_{}", struct_name.to_string().to_uppercase());
+    let static_name = format!(
+        "__MOD_COMPONENT_REGISTRATION_{}",
+        struct_name.to_string().to_uppercase()
+    );
     let static_ident = syn::Ident::new(&static_name, struct_name.span());
 
     let expanded = quote! {
         // Original struct with serde and bincode derives
         #[derive(serde::Serialize, serde::Deserialize)]
+        #[derive(bevy::prelude::Reflect)]
         #derive_input
 
         // Component registration
         #[linkme::distributed_slice(modruntime::COMPONENT_REGISTRY)]
         #[warn(non_upper_case_globals)]
-        static #static_ident: modruntime::ComponentRegistration =
-            modruntime::ComponentRegistration {
+        static #static_ident: modruntime::component::ComponentRegistration =
+            modruntime::component::ComponentRegistration {
                 id: #component_id,
-                serialize_fn: |component: &dyn std::any::Any| -> Vec<u8> {
-                    if let Some(c) = component.downcast_ref::<#struct_name>() {
+                serialize_fn: |component: bevy::ptr::Ptr<'_>| -> Vec<u8> {
+                    unsafe {
+                        let c = component.deref::<#struct_name>();
                         bincode::serde::encode_to_vec(c, bincode::config::standard()).unwrap_or_else(|_| Vec::new())
-                    } else {
-                        Vec::new()
                     }
                 },
                 deserialize_fn: |data: &[u8]| -> Box<dyn std::any::Any> {
@@ -46,6 +49,10 @@ pub fn mod_component(args: TokenStream, input: TokenStream) -> TokenStream {
                         <#struct_name, bincode::config::Configuration>(data, bincode::config::standard())
                         .expect("Failed to deserialize component data").0)
                 },
+                get_type_id: || -> std::any::TypeId {std::any::TypeId::of::<#struct_name>()},
+                reg_fn: |mut registry: &mut bevy::reflect::TypeRegistry| {
+                    registry.register::<#struct_name>()
+                }
             };
     };
 

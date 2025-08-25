@@ -5,7 +5,7 @@
 //! and coordinating communication between mods and the main game.
 
 use bevy::{log::LogPlugin, prelude::*};
-use modruntime::{WasmModPlugin, mod_component, COMPONENT_REGISTRY};
+use modruntime::{COMPONENT_REGISTRY, WasmModPlugin, mod_component};
 
 #[mod_component(id = "square")]
 #[derive(Component, Debug)]
@@ -22,6 +22,10 @@ fn print_component_registry() {
     }
 }
 
+fn spawn_example_component(mut commands: Commands) {
+    commands.spawn((Square(Vec2 { x: 0.0, y: 1.0 }), Rect(IVec2 { x: 3, y: 4 })));
+}
+
 fn main() {
     App::new()
         // .add_plugins(MinimalPlugins)
@@ -30,5 +34,6 @@ fn main() {
             "/home/PulseX/Projects/bevy_wasm_mod/target/wasm32-wasip1/debug/game_mod.wasm",
         ))
         .add_systems(Startup, print_component_registry)
+        .add_systems(Startup, spawn_example_component)
         .run();
 }

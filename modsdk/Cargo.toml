@@ -5,3 +5,5 @@ version.workspace = true
 
 [dependencies]
 modsdk_macros = { path = "../modsdk_macros" }
+serde = { workspace = true }
+bincode = { workspace = true }

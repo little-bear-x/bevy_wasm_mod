@@ -4,5 +4,7 @@ edition.workspace = true
 version.workspace = true
 
 [dependencies]
-bevy_math = "0.16"
+bevy_math = { version = "0.16", features = ['serialize'] }
 modsdk = { path = "../../../modsdk" }
+serde = { workspace = true }
+bincode = { workspace = true }

@@ -39,7 +39,7 @@ fn parse_id_from_args(args: proc_macro::TokenStream) -> String {
 /// Component macro.
 ///
 /// This macro is used to mark a component that can be queried by mods.
-/// It will register the component with an ID.
+/// It will register the component with an ID and add serde support.
 #[proc_macro_attribute]
 pub fn component(args: TokenStream, input: TokenStream) -> TokenStream {
     let derive_input = parse_macro_input!(input as DeriveInput);
@@ -53,7 +53,8 @@ pub fn component(args: TokenStream, input: TokenStream) -> TokenStream {
     };
 
     let expanded = quote! {
-        // Original struct
+        // Original struct with serde derives for serialization/deserialization
+        #[derive(serde::Serialize, serde::Deserialize)]
         #derive_input
 
         // Component ID registration

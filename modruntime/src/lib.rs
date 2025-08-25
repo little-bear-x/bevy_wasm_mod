@@ -3,9 +3,10 @@
 //! This crate provides the runtime for loading and executing Bevy mods.
 //! It handles WebAssembly sandboxing and communication between mods and the host application.
 
-mod component;
+pub mod component;
 mod utils;
 
+use bevy::ecs::world::unsafe_world_cell::UnsafeWorldCell;
 use bevy::prelude::*;
 use modtypes::SystemInfo;
 use std::cell::UnsafeCell;
@@ -19,7 +20,10 @@ use wasmtime_wasi::WasiCtxBuilder;
 use wasmtime_wasi::preview1::WasiP1Ctx;
 
 // Re-export component registry and registration
-pub use component::{COMPONENT_REGISTRY, ComponentRegistration};
+pub use component::{
+    COMPONENT_REGISTRY, ComponentRegistration, QueryResult, host_handle_free_memory,
+    host_handle_query_components,
+};
 
 // Re-export the mod_component macro
 pub use modruntime_macros::mod_component;
@@ -60,7 +64,8 @@ impl Plugin for WasmModPlugin {
             .insert_resource(LoadedMods(HashMap::new()))
             .insert_resource(ModSystems(Vec::new()));
 
-        app.add_systems(Startup, load_all_mod);
+        app.add_systems(PreStartup, load_all_mod);
+        app.add_systems(Startup, load_world);
         app.add_systems(PostUpdate, execute_mod_systems);
     }
 }
@@ -82,12 +87,15 @@ pub struct LoadedMod {
 /// Wasm state of mod
 pub struct ModState {
     wasi_ctx: Arc<Mutex<UnsafeCell<WasiP1Ctx>>>,
+    /// Reference to the Bevy world for component queries
+    world: Option<Arc<UnsafeWorldCell<'static>>>,
 }
 
 impl ModState {
     pub fn new(wasi_ctx: WasiP1Ctx) -> Self {
         Self {
             wasi_ctx: Arc::new(Mutex::new(UnsafeCell::new(wasi_ctx))),
+            world: None,
         }
     }
 
@@ -95,6 +103,19 @@ impl ModState {
     /// Get wasi ctx
     pub fn get_wasi_ctx_mut(&mut self) -> &mut WasiP1Ctx {
         unsafe { &mut *self.wasi_ctx.lock().unwrap().get() }
+    }
+
+    /// Set the Bevy world reference
+    pub fn set_world(&mut self, world: Arc<UnsafeWorldCell<'static>>) {
+        self.world = Some(world);
+    }
+
+    /// Get the Bevy world reference
+    pub fn get_world(&self) -> Option<UnsafeWorldCell<'static>> {
+        match self.world.clone() {
+            Some(world) => Some(*world),
+            None => None,
+        }
     }
 }
 
@@ -136,6 +157,29 @@ fn load_all_mod(
             Ok(_) => {}
             Err(e) => {
                 error!("Error in link mod '{}' __mod_log: {}", mod_path, e);
+            }
+        };
+
+        // Add query components function
+        match linker.func_wrap(
+            "env",
+            "__mod_query_components",
+            host_handle_query_components,
+        ) {
+            Ok(_) => {}
+            Err(e) => {
+                error!(
+                    "Error in link mod '{}' __mod_query_components: {}",
+                    mod_path, e
+                );
+            }
+        };
+
+        // Add free memory function
+        match linker.func_wrap("env", "__mod_free_memory", host_handle_free_memory) {
+            Ok(_) => {}
+            Err(e) => {
+                error!("Error in link mod '{}' __mod_free_memory: {}", mod_path, e);
             }
         };
 
@@ -257,6 +301,50 @@ fn execute_mod_systems(mut mod_systems: ResMut<ModSystems>, r_loaded_mods: Res<L
         match system_fn.call(&mut *store, ()) {
             Ok(_) => {}
             Err(e) => error!("Failed to execute system: {}", e),
+        }
+    }
+}
+
+/// Update the world reference in all mod states
+fn load_world(world: &mut World) {
+    // reg types
+    {
+        let app_type_registry = world.resource_mut::<AppTypeRegistry>();
+        let mut registry = app_type_registry.write();
+        for registration in COMPONENT_REGISTRY {
+            (registration.reg_fn)(&mut registry)
+        }
+    }
+
+    // Get the LoadedMods resource
+    let loaded_mod_keys: Vec<String> = {
+        let r_loaded_mods = world.get_resource::<LoadedMods>();
+        if r_loaded_mods.is_none() {
+            return;
+        }
+        let r_loaded_mods = r_loaded_mods.unwrap();
+        r_loaded_mods.0.keys().cloned().collect()
+    };
+
+    info!("loading world for mods {:?}", loaded_mod_keys);
+
+    // Create a static reference to the world
+    // This is safe because the world reference is valid for the duration of the application
+    let world_cell = unsafe {
+        std::mem::transmute::<UnsafeWorldCell<'_>, UnsafeWorldCell<'static>>(
+            world.as_unsafe_world_cell(),
+        )
+    };
+
+    // Update each loaded mod
+    let r_loaded_mods = world.get_resource::<LoadedMods>().unwrap();
+    for mod_name in &loaded_mod_keys {
+        if let Some(loaded_mod) = r_loaded_mods.0.get(mod_name) {
+            let store_arc = loaded_mod.store.clone();
+            let mut store = store_arc.write().unwrap();
+            store.data_mut().set_world(Arc::new(world_cell));
+        } else {
+            error!("Faild to load world {}", mod_name);
         }
     }
 }
