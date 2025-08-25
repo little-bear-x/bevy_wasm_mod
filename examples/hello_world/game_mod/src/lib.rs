@@ -13,7 +13,7 @@ pub fn example_system() {
     log_info!("A info message from mod");
 
     for (square, rect) in query!(Square, Rect) {
-        log_info!("Found square: {:?} and rect: {:?}", square.0, rect.0);
+        log_info!("From Mod: Found square: {:?} and rect: {:?}", square.0, rect.0);
     }
 }
 

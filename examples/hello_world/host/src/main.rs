@@ -24,6 +24,7 @@ fn print_component_registry() {
 
 fn spawn_example_component(mut commands: Commands) {
     commands.spawn((Square(Vec2 { x: 0.0, y: 1.0 }), Rect(IVec2 { x: 3, y: 4 })));
+    commands.spawn((Square(Vec2 { x: 2.0, y: 3.6 }), Rect(IVec2 { x: 32, y: 48 })));
 }
 
 fn main() {
@@ -31,6 +32,7 @@ fn main() {
         // .add_plugins(MinimalPlugins)
         .add_plugins(LogPlugin::default())
         .add_plugins(WasmModPlugin::default().add_mod_path(
+            // replace this to your path
             "/home/PulseX/Projects/bevy_wasm_mod/target/wasm32-wasip1/debug/game_mod.wasm",
         ))
         .add_systems(Startup, print_component_registry)
