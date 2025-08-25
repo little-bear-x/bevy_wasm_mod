@@ -28,7 +28,7 @@ pub struct ComponentRegistration {
 }
 
 /// Query result structure for passing data to WASM
-/// 
+///
 /// This struct is used to pass data between the host and WASM modules.
 /// It must be compatible with the WASM32 target platform, where pointers and usize are 32-bit.
 #[repr(C)]
@@ -108,24 +108,24 @@ pub fn host_handle_query_components(
     // If we have data, allocate memory in WASM space and copy the data there
     if !serialized_data.is_empty() {
         let data_len = serialized_data.len();
-        
+
         // Allocate memory in WASM space for the serialized data
         // We'll use a simple approach: allocate at a fixed offset in the memory
         // In a real implementation, we would need a proper memory allocator
         let data_ptr_offset = 0x100000; // Start at 1MB offset
-        
+
         // Write the serialized data to WASM memory
         if let Err(e) = memory.write(&mut caller, data_ptr_offset, &serialized_data) {
             error!("Failed to write serialized data to WASM memory: {}", e);
             return 0;
         }
-        
+
         // Create a QueryResult struct with the correct data pointer and length
         let query_result = QueryResult {
             data_ptr: data_ptr_offset as u32,
             data_len: data_len as u32,
         };
-        
+
         // Write the QueryResult struct to WASM memory at the provided result_ptr
         let result_bytes = unsafe {
             std::slice::from_raw_parts(
@@ -133,12 +133,12 @@ pub fn host_handle_query_components(
                 std::mem::size_of::<QueryResult>(),
             )
         };
-        
+
         if let Err(e) = memory.write(&mut caller, result_ptr as usize, result_bytes) {
             error!("Failed to write QueryResult to WASM memory: {}", e);
             return 0;
         }
-        
+
         data_len as i32
     } else {
         0
@@ -146,10 +146,45 @@ pub fn host_handle_query_components(
 }
 
 /// Free memory allocated for query results
-pub fn host_handle_free_memory(mut _caller: wasmtime::Caller<'_, ModState>, _ptr: i32, _len: i32) {
-    // In a full implementation, this would free memory allocated in the WASM linear memory
-    // For now, this is a placeholder
-    // The actual implementation would depend on how we allocate memory in host_handle_query_components
+pub fn host_handle_free_memory(mut caller: wasmtime::Caller<'_, ModState>, ptr: i32, len: i32) {
+    // Validate the pointer and length parameters
+    if ptr <= 0 || len <= 0 {
+        warn!(
+            "Invalid parameters for memory free: ptr={}, len={}",
+            ptr, len
+        );
+        return;
+    }
+
+    // In the current implementation, we're using a fixed offset in WASM memory (0x100000)
+    // We're not actually allocating dynamic memory, so we don't need to free anything
+    // However, for safety, we'll zero out the memory to prevent potential data leaks
+    // or use-after-free issues if the implementation changes in the future
+
+    let ptr = ptr as u32;
+    let len = len as usize;
+
+    // Check if the pointer matches our fixed allocation offset
+    if ptr == 0x100000 {
+        // Zero out the memory region that was used for the allocation
+        if let Some(export) = caller.get_export("memory") {
+            if let Some(memory) = export.into_memory() {
+                let zero_data = vec![0u8; len];
+                if let Err(e) = memory.write(&mut caller, ptr as usize, &zero_data) {
+                    warn!("Failed to zero out memory region: {}", e);
+                } else {
+                    info!("Memory region zeroed out: ptr={}, len={}", ptr, len);
+                }
+            }
+        }
+    } else {
+        // If the pointer doesn't match our expected offset, log a warning
+        // This could indicate a bug or a change in the allocation strategy
+        warn!(
+            "Attempted to free memory at unexpected location: ptr={}, len={}",
+            ptr, len
+        );
+    }
 }
 
 /// Query components from the Bevy world
@@ -163,52 +198,67 @@ pub fn query_components_from_world(
         return None;
     }
 
-    // For now, only support querying single components
-    if component_ids.len() != 1 {
-        return None;
-    }
+    // Find all component registrations
+    let mut registrations = Vec::new();
+    let mut type_ids = Vec::new();
+    let mut component_db_ids = Vec::new();
 
-    let component_id = &component_ids[0];
-
-    // Find the component registration
-    let registration = find_component_registration(component_id)?;
-    let type_id = (registration.get_type_id)();
-
-    // Get components
-    let mut results: Vec<bevy::ptr::Ptr<'_>> = Vec::new();
     unsafe {
         let world_origin = world.world_mut();
-        let Some(component_id) = world_origin.components().get_id(type_id) else {
-            return None;
-        };
+
+        // Get the component registrations and their IDs
+        for component_id in component_ids {
+            let registration = find_component_registration(component_id)?;
+            let type_id = (registration.get_type_id)();
+            let component_db_id = world_origin.components().get_id(type_id)?;
+
+            registrations.push(registration);
+            type_ids.push(type_id);
+            component_db_ids.push(component_db_id);
+        }
+
+        // Get components
+        let mut entity_results: Vec<Vec<bevy::ptr::Ptr<'_>>> = Vec::new();
 
         // Iterate through all entities in the world
         for entity_ref in world_origin.iter_entities() {
             let entity = entity_ref.id();
-            // Try to get the component from the entity
-            if let Some(component_ptr) = world_origin.get_by_id(entity, component_id) {
-                results.push(component_ptr);
+            let mut entity_components = Vec::new();
+
+            'a: for &component_id in &component_db_ids {
+                if let Some(component_ptr) = world_origin.get_by_id(entity, component_id) {
+                    entity_components.push(component_ptr);
+                } else {
+                    continue 'a;
+                }
             }
+            entity_results.push(entity_components);
         }
+
+        info!(
+            "Found {} entities with all components",
+            entity_results.len()
+        );
+
+        // Serialize the components
+        let mut serialized_entities = Vec::new();
+        for entity_components in entity_results {
+            let mut serialized_components = Vec::new();
+            for (i, component_ptr) in entity_components.iter().enumerate() {
+                let serialized_component = (registrations[i].serialize_fn)(*component_ptr);
+                info!("Serialized component size: {}", serialized_component.len());
+                serialized_components.push(serialized_component);
+            }
+            serialized_entities.push(serialized_components);
+        }
+
+        // Serialize the vector of serialized entities
+        let serialized_data =
+            bincode::serde::encode_to_vec(&serialized_entities, bincode::config::standard())
+                .ok()?;
+
+        info!("serialized_data length: {}", serialized_data.len());
+
+        Some(serialized_data)
     }
-
-    info!("Found {} components", results.len());
-
-    // Serialize the components
-    let mut serialized_components = Vec::new();
-    for component_ptr in results {
-        // Convert the component pointer to a reference to Any
-        let serialized_component = (registration.serialize_fn)(component_ptr);
-        info!("Serialized component size: {}", serialized_component.len());
-        serialized_components.push(serialized_component);
-    }
-
-    // Serialize the vector of serialized components
-    let serialized_data =
-        bincode::serde::encode_to_vec(&serialized_components, bincode::config::standard()).ok()?;
-
-    info!("serialized_data length: {}", serialized_data.len());
-    info!("serialized_data: {:?}", serialized_data);
-
-    Some(serialized_data)
 }

@@ -5,15 +5,15 @@
 
 // Remove Bevy prelude import since we're in a WASM context
 // use bevy::prelude::*;
-use game_sdk::Square;
+use game_sdk::{Rect, Square};
 use modapi::*;
 
 #[system]
 pub fn example_system() {
     log_info!("A info message from mod");
 
-    for square in query!(Square) {
-        log_info!("Found square: {:?} and rect: ", square.0,);
+    for (square, rect) in query!(Square, Rect) {
+        log_info!("Found square: {:?} and rect: {:?}", square.0, rect.0);
     }
 }
 
