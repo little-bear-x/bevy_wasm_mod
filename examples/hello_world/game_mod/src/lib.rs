@@ -5,7 +5,7 @@
 
 // Remove Bevy prelude import since we're in a WASM context
 // use bevy::prelude::*;
-use game_sdk::{Rect, Square};
+use game_sdk::{Player, Rect, Square};
 use modapi::*;
 
 #[system]
@@ -14,6 +14,12 @@ pub fn example_system() {
 
     for (square, rect) in query!(Square, Rect) {
         log_info!("From Mod: Found square: {:?} and rect: {:?}", square.0, rect.0);
+    }
+    
+    if let Some(player) = res!(Player) {
+        log_info!("From Mod: Found player: {:?}", player.0);
+    } else {
+        log_warn!("From Mod: Player resource not found");
     }
 }
 

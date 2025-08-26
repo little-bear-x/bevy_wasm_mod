@@ -5,7 +5,7 @@
 //! and coordinating communication between mods and the main game.
 
 use bevy::{log::LogPlugin, prelude::*};
-use modruntime::{COMPONENT_REGISTRY, WasmModPlugin, mod_component};
+use modruntime::{COMPONENT_REGISTRY, RESOURCE_REGISTRY, WasmModPlugin, mod_component, mod_resource};
 
 #[mod_component(id = "square")]
 #[derive(Component, Debug)]
@@ -15,6 +15,10 @@ pub struct Square(pub Vec2);
 #[derive(Component, Debug)]
 pub struct Rect(pub IVec2);
 
+#[mod_resource(id = "player")]
+#[derive(Resource, Debug)]
+pub struct Player(pub Vec2);
+
 fn print_component_registry() {
     info!("Component registry:");
     for registration in COMPONENT_REGISTRY {
@@ -22,9 +26,20 @@ fn print_component_registry() {
     }
 }
 
+fn print_resource_registry() {
+    info!("Resource registry:");
+    for registration in RESOURCE_REGISTRY {
+        info!("  Resource ID: {}", registration.id);
+    }
+}
+
 fn spawn_example_component(mut commands: Commands) {
     commands.spawn((Square(Vec2 { x: 0.0, y: 1.0 }), Rect(IVec2 { x: 3, y: 4 })));
     commands.spawn((Square(Vec2 { x: 2.0, y: 3.6 }), Rect(IVec2 { x: 32, y: 48 })));
+}
+
+fn insert_example_resource(mut commands: Commands) {
+    commands.insert_resource(Player(Vec2 { x: 10.0, y: 20.0 }));
 }
 
 fn main() {
@@ -36,6 +51,8 @@ fn main() {
             "/home/PulseX/Projects/bevy_wasm_mod/target/wasm32-wasip1/debug/game_mod.wasm",
         ))
         .add_systems(Startup, print_component_registry)
+        .add_systems(Startup, print_resource_registry)
         .add_systems(Startup, spawn_example_component)
+        .add_systems(Startup, insert_example_resource)
         .run();
 }

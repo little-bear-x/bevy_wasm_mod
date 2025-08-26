@@ -4,6 +4,7 @@
 //! It handles WebAssembly sandboxing and communication between mods and the host application.
 
 pub mod component;
+pub mod resource;
 mod utils;
 
 use bevy::ecs::world::unsafe_world_cell::UnsafeWorldCell;
@@ -25,8 +26,13 @@ pub use component::{
     host_handle_query_components,
 };
 
+// Re-export resource registry and registration
+pub use resource::{
+    RESOURCE_REGISTRY, ResourceRegistration, host_handle_query_resources,
+};
+
 // Re-export the mod_component macro
-pub use modruntime_macros::mod_component;
+pub use modruntime_macros::{mod_component, mod_resource};
 
 /// Plugin for mod
 #[derive(Debug, Resource, Clone)]
@@ -175,6 +181,21 @@ fn load_all_mod(
             }
         };
 
+        // Add query resources function
+        match linker.func_wrap(
+            "env",
+            "__mod_query_resources",
+            host_handle_query_resources,
+        ) {
+            Ok(_) => {}
+            Err(e) => {
+                error!(
+                    "Error in link mod '{}' __mod_query_resources: {}",
+                    mod_path, e
+                );
+            }
+        };
+
         // Add free memory function
         match linker.func_wrap("env", "__mod_free_memory", host_handle_free_memory) {
             Ok(_) => {}
@@ -312,6 +333,9 @@ fn load_world(world: &mut World) {
         let app_type_registry = world.resource_mut::<AppTypeRegistry>();
         let mut registry = app_type_registry.write();
         for registration in COMPONENT_REGISTRY {
+            (registration.reg_fn)(&mut registry)
+        }
+        for registration in RESOURCE_REGISTRY {
             (registration.reg_fn)(&mut registry)
         }
     }

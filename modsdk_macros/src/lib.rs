@@ -68,3 +68,36 @@ pub fn component(args: TokenStream, input: TokenStream) -> TokenStream {
 
     TokenStream::from(expanded)
 }
+
+/// Resource macro.
+///
+/// This macro is used to mark a resource that can be queried by mods.
+/// It will register the resource with an ID and add serde support.
+#[proc_macro_attribute]
+pub fn resource(args: TokenStream, input: TokenStream) -> TokenStream {
+    let derive_input = parse_macro_input!(input as DeriveInput);
+    let id = parse_id_from_args(args);
+
+    let struct_name = &derive_input.ident;
+    let resource_id = if id.is_empty() {
+        struct_name.to_string()
+    } else {
+        id
+    };
+
+    let expanded = quote! {
+        // Original struct with serde derives for serialization/deserialization
+        #[derive(serde::Serialize, serde::Deserialize)]
+        #derive_input
+
+        // Resource ID registration
+        impl #struct_name {
+            /// Get the resource ID
+            pub const fn resource_id() -> &'static str {
+                #resource_id
+            }
+        }
+    };
+
+    TokenStream::from(expanded)
+}
