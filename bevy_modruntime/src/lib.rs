@@ -4,7 +4,11 @@
 //! It handles WebAssembly sandboxing and communication between mods and the host application.
 
 pub mod component;
+pub mod log;
+pub mod query;
 pub mod resource;
+pub mod spawn;
+pub mod system;
 mod utils;
 
 use bevy::ecs::world::unsafe_world_cell::UnsafeWorldCell;
@@ -16,23 +20,33 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::sync::RwLock;
 use utils::*;
-use wasmtime::{Engine, Instance, Linker, Module, Store, TypedFunc};
+use wasmtime::{Engine, Instance, Linker, Module, Store};
 use wasmtime_wasi::WasiCtxBuilder;
 use wasmtime_wasi::preview1::WasiP1Ctx;
 
+// Re-export log handle
+pub use log::host_handle_log;
+
 // Re-export component registry and registration
-pub use component::{
-    COMPONENT_REGISTRY, ComponentRegistration, QueryResult, host_handle_free_memory,
-    host_handle_query_components,
-};
+pub use component::{COMPONENT_REGISTRY, ComponentRegistration, HostModResult};
+
+// Re-export query
+pub use query::host_handle_query_components;
 
 // Re-export resource registry and registration
-pub use resource::{
-    RESOURCE_REGISTRY, ResourceRegistration, host_handle_query_resources,
-};
+pub use resource::{RESOURCE_REGISTRY, ResourceRegistration, host_handle_query_resources};
+
+// Re-export system handle
+pub use system::{ModSystems, execute_mod_update_systems, execute_mod_startup_systems};
+
+// Re-export spawn functionality
+pub use spawn::host_handle_spawn_entities;
 
 // Re-export the mod_component macro
 pub use bevy_modruntime_macros::{mod_component, mod_resource};
+
+use crate::system::ModSystemInfo;
+use crate::system::ModSystemSchedule;
 
 /// Plugin for mod
 #[derive(Debug, Resource, Clone)]
@@ -72,7 +86,8 @@ impl Plugin for WasmModPlugin {
 
         app.add_systems(PreStartup, load_all_mod);
         app.add_systems(Startup, load_world);
-        app.add_systems(PostUpdate, execute_mod_systems);
+        app.add_systems(PostStartup, execute_mod_startup_systems);
+        app.add_systems(PostUpdate, execute_mod_update_systems);
     }
 }
 
@@ -124,10 +139,6 @@ impl ModState {
         }
     }
 }
-
-/// Resource to store mod systems as closures(mod name, system func)
-#[derive(Resource)]
-pub struct ModSystems(pub Vec<(String, TypedFunc<(), ()>)>);
 
 /// load all mod from mod paths
 fn load_all_mod(
@@ -182,11 +193,7 @@ fn load_all_mod(
         };
 
         // Add query resources function
-        match linker.func_wrap(
-            "env",
-            "__mod_query_resources",
-            host_handle_query_resources,
-        ) {
+        match linker.func_wrap("env", "__mod_query_resources", host_handle_query_resources) {
             Ok(_) => {}
             Err(e) => {
                 error!(
@@ -201,6 +208,17 @@ fn load_all_mod(
             Ok(_) => {}
             Err(e) => {
                 error!("Error in link mod '{}' __mod_free_memory: {}", mod_path, e);
+            }
+        };
+
+        // Add spawn entities function
+        match linker.func_wrap("env", "__mod_spawn_entities", host_handle_spawn_entities) {
+            Ok(_) => {}
+            Err(e) => {
+                error!(
+                    "Error in link mod '{}' __mod_spawn_entities: {}",
+                    mod_path, e
+                );
             }
         };
 
@@ -274,8 +292,8 @@ fn load_all_mod(
 
             let export_name = system_info_export_name_str(&info);
             info!(
-                "System info for '{}': export_name = '{}'",
-                system_name, &export_name
+                "System info for '{}': export_name = '{}', schedule = {}",
+                system_name, &export_name, info.schedule
             );
 
             let func = {
@@ -292,7 +310,11 @@ fn load_all_mod(
                 }
             };
 
-            r_mod_systems.0.push((mod_name.clone(), func));
+            r_mod_systems.0.push(ModSystemInfo {
+                mod_name: mod_name.clone(),
+                schedule: ModSystemSchedule::from(info.schedule),
+                run_func: func,
+            });
             system_infos.insert(system_name.clone(), info);
         }
 
@@ -305,24 +327,6 @@ fn load_all_mod(
 
         // Add the loaded mod
         r_loaded_mods.0.insert(mod_name, loaded_mod);
-    }
-}
-
-fn execute_mod_systems(mut mod_systems: ResMut<ModSystems>, r_loaded_mods: Res<LoadedMods>) {
-    // Execute each mod system
-    for (mod_name, system_fn) in &mut mod_systems.0 {
-        let store_arc = match r_loaded_mods.0.get(mod_name) {
-            Some(loaded_mod) => loaded_mod.store.clone(),
-            None => {
-                error!("executing system err: mod {} not found", &mod_name);
-                continue;
-            }
-        };
-        let mut store = store_arc.write().unwrap();
-        match system_fn.call(&mut *store, ()) {
-            Ok(_) => {}
-            Err(e) => error!("Failed to execute system: {}", e),
-        }
     }
 }
 

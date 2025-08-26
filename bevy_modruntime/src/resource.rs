@@ -8,7 +8,7 @@ use bevy::ecs::world::unsafe_world_cell::UnsafeWorldCell;
 use bevy::prelude::*;
 use bevy::reflect::TypeRegistry;
 use std::any::{Any, TypeId};
-pub use bevy_modtypes::QueryResult;
+pub use bevy_modtypes::HostModResult;
 
 // Resource registry using linkme
 #[linkme::distributed_slice]
@@ -111,7 +111,7 @@ pub fn host_handle_query_resources(
         }
 
         // Create a QueryResult struct with the correct data pointer and length
-        let query_result = QueryResult {
+        let query_result = HostModResult {
             data_ptr: data_ptr_offset as u32,
             data_len: data_len as u32,
         };
@@ -119,8 +119,8 @@ pub fn host_handle_query_resources(
         // Write the QueryResult struct to WASM memory at the provided result_ptr
         let result_bytes = unsafe {
             std::slice::from_raw_parts(
-                &query_result as *const QueryResult as *const u8,
-                std::mem::size_of::<QueryResult>(),
+                &query_result as *const HostModResult as *const u8,
+                std::mem::size_of::<HostModResult>(),
             )
         };
 

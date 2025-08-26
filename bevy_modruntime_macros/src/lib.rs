@@ -52,6 +52,11 @@ pub fn mod_component(args: TokenStream, input: TokenStream) -> TokenStream {
                 get_type_id: || -> std::any::TypeId {std::any::TypeId::of::<#struct_name>()},
                 reg_fn: |mut registry: &mut bevy::reflect::TypeRegistry| {
                     registry.register::<#struct_name>()
+                },
+                insert_fn: |entity: &mut bevy::ecs::world::EntityWorldMut, component: Box<dyn std::any::Any>| {
+                    if let Ok(c) = component.downcast::<#struct_name>() {
+                        entity.insert(*c);
+                    }
                 }
             };
     };

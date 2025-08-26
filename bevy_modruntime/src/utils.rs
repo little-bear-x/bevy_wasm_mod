@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use bevy::log::{debug, error, info, warn};
+use bevy::log::{info, warn};
 use bevy_modtypes::SystemInfo;
 use std::mem;
 use wasmtime::{Instance, Result, Store, TypedFunc};
@@ -131,33 +131,44 @@ pub(crate) fn get_mod_name<T>(mut store: &mut Store<T>, instance: &Instance) -> 
     Ok(String::from_utf8(buffer)?)
 }
 
-/// Handle log
-pub fn host_handle_log(
-    mut caller: wasmtime::Caller<'_, ModState>,
-    ptr: i32,
-    len: i32,
-    level: i32,
-) {
-    let memory = caller.get_export("memory").unwrap().into_memory().unwrap();
-    let mem_data = memory.data(&mut caller);
-    let bytes = &mem_data[ptr as usize..(ptr + len) as usize];
-    let msg = String::from_utf8_lossy(bytes);
+/// Free memory allocated for query results
+pub fn host_handle_free_memory(mut caller: wasmtime::Caller<'_, ModState>, ptr: i32, len: i32) {
+    // Validate the pointer and length parameters
+    if ptr <= 0 || len <= 0 {
+        warn!(
+            "Invalid parameters for memory free: ptr={}, len={}",
+            ptr, len
+        );
+        return;
+    }
 
-    match level {
-        0 => {
-            debug!("{}", msg);
+    // In the current implementation, we're using a fixed offset in WASM memory (0x100000)
+    // We're not actually allocating dynamic memory, so we don't need to free anything
+    // However, for safety, we'll zero out the memory to prevent potential data leaks
+    // or use-after-free issues if the implementation changes in the future
+
+    let ptr = ptr as u32;
+    let len = len as usize;
+
+    // Check if the pointer matches our fixed allocation offset
+    if ptr == 0x100000 {
+        // Zero out the memory region that was used for the allocation
+        if let Some(export) = caller.get_export("memory") {
+            if let Some(memory) = export.into_memory() {
+                let zero_data = vec![0u8; len];
+                if let Err(e) = memory.write(&mut caller, ptr as usize, &zero_data) {
+                    warn!("Failed to zero out memory region: {}", e);
+                } else {
+                    info!("Memory region zeroed out: ptr={}, len={}", ptr, len);
+                }
+            }
         }
-        1 => {
-            info!("{}", msg);
-        }
-        2 => {
-            warn!("{}", msg);
-        }
-        3 => {
-            error!("{}", msg);
-        }
-        _ => {
-            info!("{}", msg);
-        }
+    } else {
+        // If the pointer doesn't match our expected offset, log a warning
+        // This could indicate a bug or a change in the allocation strategy
+        warn!(
+            "Attempted to free memory at unexpected location: ptr={}, len={}",
+            ptr, len
+        );
     }
 }

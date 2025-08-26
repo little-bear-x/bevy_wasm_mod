@@ -14,9 +14,12 @@ use syn::{
 ///
 /// Add this macro to your Fn to insert to your system
 #[proc_macro_attribute]
-pub fn system(_args: TokenStream, input: TokenStream) -> TokenStream {
+pub fn system(args: TokenStream, input: TokenStream) -> TokenStream {
     // Parse the input function
     let input_fn = parse_macro_input!(input as ItemFn);
+    
+    // Parse the arguments
+    let schedule = parse_schedule_args(args);
 
     // Get the function name
     let fn_name = &input_fn.sig.ident;
@@ -52,6 +55,7 @@ pub fn system(_args: TokenStream, input: TokenStream) -> TokenStream {
                 INIT.call_once(|| {
                     let mut info = SystemInfo {
                         export_name: [0; 64],
+                        schedule: #schedule,
                     };
 
                     // Copy the function name into the array, ensuring it's null-terminated
@@ -69,6 +73,35 @@ pub fn system(_args: TokenStream, input: TokenStream) -> TokenStream {
     };
 
     TokenStream::from(expanded)
+}
+
+/// Parse schedule arguments
+fn parse_schedule_args(args: TokenStream) -> u8 {
+    let args_str = args.to_string();
+    
+    // If no arguments, default to Update (0)
+    if args_str.is_empty() {
+        return 0;
+    }
+    
+    // Parse the arguments
+    let parsed_args: Vec<&str> = args_str.split('=').collect();
+    if parsed_args.len() != 2 {
+        return 0; // Default to Update
+    }
+    
+    let key = parsed_args[0].trim();
+    let value = parsed_args[1].trim();
+    
+    if key != "schedule" {
+        return 0; // Default to Update
+    }
+    
+    match value {
+        "Update" => 0,
+        "Startup" => 1,
+        _ => 0, // Default to Update
+    }
 }
 
 /// Arguments for the mod macro

@@ -57,10 +57,9 @@ pub fn component(args: TokenStream, input: TokenStream) -> TokenStream {
         #[derive(serde::Serialize, serde::Deserialize)]
         #derive_input
 
-        // Component ID registration
-        impl #struct_name {
-            /// Get the component ID
-            pub const fn component_id() -> &'static str {
+        // // Add component trait 
+        impl bevy_modsdk::Component for #struct_name {
+            fn component_id() -> &'static str {
                 #component_id
             }
         }

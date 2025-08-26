@@ -44,7 +44,7 @@ fn insert_example_resource(mut commands: Commands) {
 
 fn main() {
     App::new()
-        // .add_plugins(MinimalPlugins)
+        .add_plugins(MinimalPlugins)
         .add_plugins(LogPlugin::default())
         .add_plugins(WasmModPlugin::default().add_mod_path(
             // replace this to your path

@@ -924,6 +924,7 @@ name = "bevy_modapi"
 version = "0.16.0"
 dependencies = [
  "bevy_modapi_macros",
+ "bevy_modsdk",
  "bevy_modtypes",
 ]
 
