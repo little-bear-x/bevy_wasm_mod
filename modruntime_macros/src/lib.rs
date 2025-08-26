@@ -33,7 +33,7 @@ pub fn mod_component(args: TokenStream, input: TokenStream) -> TokenStream {
         #derive_input
 
         // Component registration
-        #[linkme::distributed_slice(modruntime::COMPONENT_REGISTRY)]
+        #[linkme::distributed_slice(COMPONENT_REGISTRY)]
         #[warn(non_upper_case_globals)]
         static #static_ident: modruntime::component::ComponentRegistration =
             modruntime::component::ComponentRegistration {

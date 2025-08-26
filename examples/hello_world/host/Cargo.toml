@@ -7,5 +7,5 @@ version.workspace = true
 bevy = { workspace = true }
 modruntime = { path = "../../../modruntime" }
 serde = { workspace = true }
-linkme = { workspace = true }
 bincode = { workspace = true }
+linkme = { workspace = true }

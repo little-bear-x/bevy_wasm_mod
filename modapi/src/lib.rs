@@ -5,7 +5,7 @@
 
 // Re-export the macros
 pub use modapi_macros::{mod_def, system};
-pub use modtypes::SystemInfo;
+pub use modtypes::{QueryResult, SystemInfo};
 
 // Host function declarations
 unsafe extern "C" {
@@ -13,11 +13,15 @@ unsafe extern "C" {
     ///
     /// level: 0-debug 1-info 2-warn 3-error else-info
     pub fn __mod_log(ptr: *const u8, len: usize, level: u8);
-    
+
     /// Query components from the host
     /// Returns a pointer to serialized component data and the length
-    pub fn __mod_query_components(component_ids_ptr: *const u8, component_ids_len: usize, result_ptr: *mut u8) -> usize;
-    
+    pub fn __mod_query_components(
+        component_ids_ptr: *const u8,
+        component_ids_len: usize,
+        result_ptr: *mut u8,
+    ) -> usize;
+
     /// Free memory allocated by the host
     pub fn __mod_free_memory(ptr: *mut u8, len: usize);
 }
@@ -82,16 +86,6 @@ macro_rules! log_error {
     };
 }
 
-/// Query result structure
-#[repr(C)]
-#[derive(Debug)]
-pub struct QueryResult {
-    /// Pointer to the serialized data
-    pub data_ptr: u32,
-    /// Length of the serialized data
-    pub data_len: u32,
-}
-
 /// Query macro for querying components from the host
 #[macro_export]
 macro_rules! query {
@@ -99,19 +93,19 @@ macro_rules! query {
         {
             // Get component IDs
             let component_ids: Vec<&str> = vec![$(<$component>::component_id()),+];
-            
+
             // Serialize component IDs
             let serialized_ids = bincode::serde::encode_to_vec(&component_ids, bincode::config::standard())
                 .expect("Failed to serialize component IDs");
-            
+
             // Call host function to query components
             let mut result = QueryResult {
                 data_ptr: 0,
                 data_len: 0,
             };
-            
+
             let result_ptr = &mut result as *mut QueryResult as *mut u8;
-            
+
             let data_len = unsafe {
                 __mod_query_components(
                     serialized_ids.as_ptr(),
@@ -119,17 +113,17 @@ macro_rules! query {
                     result_ptr
                 )
             };
-            
+
             // Create an empty vector to hold components
             let mut components: Vec<($($component),+)> = Vec::new();
-            
+
             // If we got data, deserialize it
             if data_len > 0 && result.data_ptr != 0 {
                 // Deserialize the data
                 let data_slice = unsafe {
                     std::slice::from_raw_parts(result.data_ptr as *const u8, result.data_len as usize)
                 };
-                
+
                 // First, deserialize into Vec<Vec<Vec<u8>>> - entities with their component data
                 match bincode::serde::decode_from_slice::<Vec<Vec<Vec<u8>>>, _>(data_slice, bincode::config::standard()) {
                     Ok((serialized_entities, _)) => {
@@ -140,7 +134,7 @@ macro_rules! query {
                                 log_error!("Mismatch in component count for entity");
                                 continue;
                             }
-                            
+
                             // Deserialize each component
                             let mut index = 0;
                             let mut success = true;
@@ -159,7 +153,7 @@ macro_rules! query {
                                     }
                                 }
                             )+
-                            
+
                             // Only create the tuple if all components were successfully deserialized
                             if success {
                                 let mut i = 0;
@@ -175,13 +169,13 @@ macro_rules! query {
                         log_error!("Failed to deserialize components: {}", e);
                     }
                 }
-                
+
                 // Free the memory allocated by the host
                 unsafe {
                     __mod_free_memory(result.data_ptr as *mut u8, result.data_len as usize);
                 }
             }
-            
+
             components.into_iter()
         }
     };
@@ -198,3 +192,4 @@ macro_rules! query_mut {
         }
     };
 }
+

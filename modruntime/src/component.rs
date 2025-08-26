@@ -8,6 +8,7 @@ use bevy::ecs::world::unsafe_world_cell::UnsafeWorldCell;
 use bevy::prelude::*;
 use bevy::reflect::TypeRegistry;
 use std::any::{Any, TypeId};
+pub use modtypes::QueryResult;
 
 // Component registry using linkme
 #[linkme::distributed_slice]
@@ -25,19 +26,6 @@ pub struct ComponentRegistration {
     pub get_type_id: fn() -> TypeId,
     /// Reg type function
     pub reg_fn: fn(&mut TypeRegistry),
-}
-
-/// Query result structure for passing data to WASM
-///
-/// This struct is used to pass data between the host and WASM modules.
-/// It must be compatible with the WASM32 target platform, where pointers and usize are 32-bit.
-#[repr(C)]
-#[derive(Debug)]
-pub struct QueryResult {
-    /// Pointer to the serialized data
-    pub data_ptr: u32,
-    /// Length of the serialized data
-    pub data_len: u32,
 }
 
 /// Find a component registration by ID

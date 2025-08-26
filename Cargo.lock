@@ -2662,7 +2662,6 @@ name = "game_sdk"
 version = "0.16.0"
 dependencies = [
  "bevy_math",
- "bincode",
  "modsdk",
  "serde",
 ]
@@ -3582,10 +3581,8 @@ dependencies = [
 name = "modapi"
 version = "0.16.0"
 dependencies = [
- "bincode",
  "modapi_macros",
  "modtypes",
- "serde",
 ]
 
 [[package]]
@@ -3615,10 +3612,7 @@ dependencies = [
 name = "modruntime_macros"
 version = "0.16.0"
 dependencies = [
- "bincode",
- "linkme",
  "quote",
- "serde",
  "syn",
 ]
 
@@ -3626,18 +3620,14 @@ dependencies = [
 name = "modsdk"
 version = "0.16.0"
 dependencies = [
- "bincode",
  "modsdk_macros",
- "serde",
 ]
 
 [[package]]
 name = "modsdk_macros"
 version = "0.16.0"
 dependencies = [
- "bincode",
  "quote",
- "serde",
  "syn",
 ]
 

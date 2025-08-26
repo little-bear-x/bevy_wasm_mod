@@ -9,5 +9,3 @@ proc-macro = true
 [dependencies]
 quote = { workspace = true }
 syn = { workspace = true }
-serde = { workspace = true }
-bincode = { workspace = true }

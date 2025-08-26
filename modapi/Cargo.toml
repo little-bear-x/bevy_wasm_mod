@@ -12,5 +12,4 @@ world = "src/wit/world.wit"
 [dependencies]
 modapi_macros = { path = "../modapi_macros" }
 modtypes = { path = "../modtypes" }
-serde = { workspace = true }
-bincode = { workspace = true }
+
