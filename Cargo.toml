@@ -1,13 +1,13 @@
 [workspace]
 resolver = "3"
 members = [
-    "modapi",
-    "modapi_macros",
-    "modruntime", 
-    "modruntime_macros", 
-    "modsdk", 
-    "modsdk_macros",
-    "modtypes",
+    "bevy_modapi",
+    "bevy_modapi_macros",
+    "bevy_modruntime", 
+    "bevy_modruntime_macros", 
+    "bevy_modsdk", 
+    "bevy_modsdk_macros",
+    "bevy_modtypes",
     "examples/hello_world/game_mod", 
     "examples/hello_world/game_sdk",
     "examples/hello_world/host"

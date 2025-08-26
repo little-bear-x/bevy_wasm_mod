@@ -6,7 +6,7 @@
 // Remove Bevy prelude import since we're in a WASM context
 // use bevy::prelude::*;
 use game_sdk::{Player, Rect, Square};
-use modapi::*;
+use bevy_modapi::*;
 
 #[system]
 pub fn example_system() {
@@ -29,4 +29,4 @@ pub fn example_system_two() {
 }
 
 // Define the mod and list all its systems
-mod_def!(example_system, example_system_two);
+system_def!(example_system, example_system_two);

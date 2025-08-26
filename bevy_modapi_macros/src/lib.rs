@@ -88,7 +88,7 @@ impl Parse for ModArgs {
 /// This macro is used to define a mod and list all its systems.
 /// It generates a function that returns information about all systems in the mod.
 #[proc_macro]
-pub fn mod_def(input: TokenStream) -> TokenStream {
+pub fn system_def(input: TokenStream) -> TokenStream {
     let args = parse_macro_input!(input as ModArgs);
 
     // Create a vector of system names

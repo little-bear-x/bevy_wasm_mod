@@ -1,7 +1,6 @@
 [package]
-name = "modsdk"
+name = "bevy_modtypes"
 edition.workspace = true
 version.workspace = true
 
 [dependencies]
-modsdk_macros = { path = "../modsdk_macros" }

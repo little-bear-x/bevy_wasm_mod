@@ -1,5 +1,5 @@
 [package]
-name = "modruntime_macros"
+name = "bevy_modruntime_macros"
 edition.workspace = true
 version.workspace = true
 

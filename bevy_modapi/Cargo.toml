@@ -1,5 +1,5 @@
 [package]
-name = "modapi"
+name = "bevy_modapi"
 edition.workspace = true
 version.workspace = true
 
@@ -10,6 +10,6 @@ package = "bevy:mod-api"
 world = "src/wit/world.wit"
 
 [dependencies]
-modapi_macros = { path = "../modapi_macros" }
-modtypes = { path = "../modtypes" }
+bevy_modapi_macros = { path = "../bevy_modapi_macros" }
+bevy_modtypes = { path = "../bevy_modtypes" }
 

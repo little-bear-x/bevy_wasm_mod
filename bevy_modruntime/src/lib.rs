@@ -9,7 +9,7 @@ mod utils;
 
 use bevy::ecs::world::unsafe_world_cell::UnsafeWorldCell;
 use bevy::prelude::*;
-use modtypes::SystemInfo;
+use bevy_modtypes::SystemInfo;
 use std::cell::UnsafeCell;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -32,7 +32,7 @@ pub use resource::{
 };
 
 // Re-export the mod_component macro
-pub use modruntime_macros::{mod_component, mod_resource};
+pub use bevy_modruntime_macros::{mod_component, mod_resource};
 
 /// Plugin for mod
 #[derive(Debug, Resource, Clone)]

@@ -2,7 +2,7 @@
 //!
 //! Used for complex structure interaction with the Host. Ensure that the definition is the same as the Host
 
-use modsdk::{component, resource};
+use bevy_modsdk::{component, resource};
 
 #[component(id = "square")]
 pub struct Square(pub bevy_math::Vec2);

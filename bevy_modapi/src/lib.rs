@@ -4,8 +4,8 @@
 //! Mod developers will use this crate to create their mods.
 
 // Re-export the macros
-pub use modapi_macros::{mod_def, system};
-pub use modtypes::{QueryResult, SystemInfo};
+pub use bevy_modapi_macros::{system_def, system};
+pub use bevy_modtypes::{QueryResult, SystemInfo};
 
 // Host function declarations
 unsafe extern "C" {

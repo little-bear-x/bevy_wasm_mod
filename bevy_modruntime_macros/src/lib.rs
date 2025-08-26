@@ -35,8 +35,8 @@ pub fn mod_component(args: TokenStream, input: TokenStream) -> TokenStream {
         // Component registration
         #[linkme::distributed_slice(COMPONENT_REGISTRY)]
         #[warn(non_upper_case_globals)]
-        static #static_ident: modruntime::component::ComponentRegistration =
-            modruntime::component::ComponentRegistration {
+        static #static_ident: bevy_modruntime::component::ComponentRegistration =
+            bevy_modruntime::component::ComponentRegistration {
                 id: #component_id,
                 serialize_fn: |component: bevy::ptr::Ptr<'_>| -> Vec<u8> {
                     unsafe {
@@ -89,8 +89,8 @@ pub fn mod_resource(args: TokenStream, input: TokenStream) -> TokenStream {
         // Resource registration
         #[linkme::distributed_slice(RESOURCE_REGISTRY)]
         #[warn(non_upper_case_globals)]
-        static #static_ident: modruntime::resource::ResourceRegistration =
-            modruntime::resource::ResourceRegistration {
+        static #static_ident: bevy_modruntime::resource::ResourceRegistration =
+            bevy_modruntime::resource::ResourceRegistration {
                 id: #resource_id,
                 serialize_fn: |resource: bevy::ptr::Ptr<'_>| -> Vec<u8> {
                     unsafe {

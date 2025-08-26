@@ -920,6 +920,64 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_modapi"
+version = "0.16.0"
+dependencies = [
+ "bevy_modapi_macros",
+ "bevy_modtypes",
+]
+
+[[package]]
+name = "bevy_modapi_macros"
+version = "0.16.0"
+dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "bevy_modruntime"
+version = "0.16.0"
+dependencies = [
+ "anyhow",
+ "bevy",
+ "bevy_modruntime_macros",
+ "bevy_modtypes",
+ "bincode",
+ "linkme",
+ "serde",
+ "wasmtime",
+ "wasmtime-wasi",
+]
+
+[[package]]
+name = "bevy_modruntime_macros"
+version = "0.16.0"
+dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "bevy_modsdk"
+version = "0.16.0"
+dependencies = [
+ "bevy_modsdk_macros",
+]
+
+[[package]]
+name = "bevy_modsdk_macros"
+version = "0.16.0"
+dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "bevy_modtypes"
+version = "0.16.0"
+
+[[package]]
 name = "bevy_pbr"
 version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2652,9 +2710,9 @@ name = "game_mod"
 version = "0.16.0"
 dependencies = [
  "bevy_math",
+ "bevy_modapi",
  "bincode",
  "game_sdk",
- "modapi",
 ]
 
 [[package]]
@@ -2662,7 +2720,7 @@ name = "game_sdk"
 version = "0.16.0"
 dependencies = [
  "bevy_math",
- "modsdk",
+ "bevy_modsdk",
  "serde",
 ]
 
@@ -2990,9 +3048,9 @@ name = "host"
 version = "0.16.0"
 dependencies = [
  "bevy",
+ "bevy_modruntime",
  "bincode",
  "linkme",
- "modruntime",
  "serde",
 ]
 
@@ -3576,64 +3634,6 @@ dependencies = [
  "wasi 0.11.1+wasi-snapshot-preview1",
  "windows-sys 0.59.0",
 ]
-
-[[package]]
-name = "modapi"
-version = "0.16.0"
-dependencies = [
- "modapi_macros",
- "modtypes",
-]
-
-[[package]]
-name = "modapi_macros"
-version = "0.16.0"
-dependencies = [
- "quote",
- "syn",
-]
-
-[[package]]
-name = "modruntime"
-version = "0.16.0"
-dependencies = [
- "anyhow",
- "bevy",
- "bincode",
- "linkme",
- "modruntime_macros",
- "modtypes",
- "serde",
- "wasmtime",
- "wasmtime-wasi",
-]
-
-[[package]]
-name = "modruntime_macros"
-version = "0.16.0"
-dependencies = [
- "quote",
- "syn",
-]
-
-[[package]]
-name = "modsdk"
-version = "0.16.0"
-dependencies = [
- "modsdk_macros",
-]
-
-[[package]]
-name = "modsdk_macros"
-version = "0.16.0"
-dependencies = [
- "quote",
- "syn",
-]
-
-[[package]]
-name = "modtypes"
-version = "0.16.0"
 
 [[package]]
 name = "naga"

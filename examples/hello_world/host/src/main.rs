@@ -5,7 +5,7 @@
 //! and coordinating communication between mods and the main game.
 
 use bevy::{log::LogPlugin, prelude::*};
-use modruntime::{COMPONENT_REGISTRY, RESOURCE_REGISTRY, WasmModPlugin, mod_component, mod_resource};
+use bevy_modruntime::{COMPONENT_REGISTRY, RESOURCE_REGISTRY, WasmModPlugin, mod_component, mod_resource};
 
 #[mod_component(id = "square")]
 #[derive(Component, Debug)]

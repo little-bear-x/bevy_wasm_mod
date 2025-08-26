@@ -1,5 +1,5 @@
 [package]
-name = "modruntime"
+name = "bevy_modruntime"
 edition.workspace = true
 version.workspace = true
 
@@ -9,7 +9,7 @@ wasmtime = { version = "36.0", features = ["cranelift"] }
 wasmtime-wasi = "36.0"
 serde = { workspace = true, features = ["derive"] }
 anyhow = { workspace = true }
-modtypes = { path = "../modtypes" }
-modruntime_macros = { path = "../modruntime_macros" }
+bevy_modtypes = { path = "../bevy_modtypes" }
+bevy_modruntime_macros = { path = "../bevy_modruntime_macros" }
 linkme = { workspace = true }
 bincode = { workspace = true }

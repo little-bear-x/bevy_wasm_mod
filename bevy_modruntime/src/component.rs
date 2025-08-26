@@ -7,8 +7,8 @@ use crate::ModState;
 use bevy::ecs::world::unsafe_world_cell::UnsafeWorldCell;
 use bevy::prelude::*;
 use bevy::reflect::TypeRegistry;
+pub use bevy_modtypes::QueryResult;
 use std::any::{Any, TypeId};
-pub use modtypes::QueryResult;
 
 // Component registry using linkme
 #[linkme::distributed_slice]
@@ -180,8 +180,6 @@ pub fn query_components_from_world(
     world: &UnsafeWorldCell<'_>,
     component_ids: &[String],
 ) -> Option<Vec<u8>> {
-    info!("querying components: {:?}", component_ids);
-
     if component_ids.is_empty() {
         return None;
     }
@@ -223,18 +221,12 @@ pub fn query_components_from_world(
             entity_results.push(entity_components);
         }
 
-        info!(
-            "Found {} entities with all components",
-            entity_results.len()
-        );
-
         // Serialize the components
         let mut serialized_entities = Vec::new();
         for entity_components in entity_results {
             let mut serialized_components = Vec::new();
             for (i, component_ptr) in entity_components.iter().enumerate() {
                 let serialized_component = (registrations[i].serialize_fn)(*component_ptr);
-                info!("Serialized component size: {}", serialized_component.len());
                 serialized_components.push(serialized_component);
             }
             serialized_entities.push(serialized_components);
@@ -244,8 +236,6 @@ pub fn query_components_from_world(
         let serialized_data =
             bincode::serde::encode_to_vec(&serialized_entities, bincode::config::standard())
                 .ok()?;
-
-        info!("serialized_data length: {}", serialized_data.len());
 
         Some(serialized_data)
     }

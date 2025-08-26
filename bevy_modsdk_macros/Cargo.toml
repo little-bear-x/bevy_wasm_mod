@@ -1,5 +1,5 @@
 [package]
-name = "modapi_macros"
+name = "bevy_modsdk_macros"
 edition.workspace = true
 version.workspace = true
 

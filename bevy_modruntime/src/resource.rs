@@ -8,7 +8,7 @@ use bevy::ecs::world::unsafe_world_cell::UnsafeWorldCell;
 use bevy::prelude::*;
 use bevy::reflect::TypeRegistry;
 use std::any::{Any, TypeId};
-pub use modtypes::QueryResult;
+pub use bevy_modtypes::QueryResult;
 
 // Resource registry using linkme
 #[linkme::distributed_slice]
@@ -69,8 +69,6 @@ pub fn host_handle_query_resources(
             }
         };
 
-    info!("Attempting to query resource: {}", resource_id);
-
     // Get the Bevy world from the caller's data
     let world = match caller.data().get_world() {
         Some(world) => world,
@@ -86,7 +84,6 @@ pub fn host_handle_query_resources(
     // Query resource from the world
     let serialized_data = match query_resource_from_world(&world, &resource_id) {
         Some(data) => {
-            info!("Successfully serialized resource data, size: {}", data.len());
             data
         },
         None => {
@@ -143,23 +140,18 @@ pub fn query_resource_from_world(
     world: &UnsafeWorldCell<'_>,
     resource_id: &str,
 ) -> Option<Vec<u8>> {
-    info!("querying resource: {:?}", resource_id);
-
     // Find the resource registration
     let registration = find_resource_registration(resource_id)?;
-    info!("Found registration for resource: {}", resource_id);
     
     unsafe {
         let world_origin = world.world_mut();
         
         // Get the resource type id
         let type_id = (registration.get_type_id)();
-        info!("Resource type ID: {:?}", type_id);
         
         // Get the component id for the resource type
         let component_id = match world_origin.components().get_resource_id(type_id) {
             Some(id) => {
-                info!("Component ID for resource: {:?}", id);
                 id
             },
             None => {
@@ -171,10 +163,8 @@ pub fn query_resource_from_world(
         // Try to get the resource from the world
         match world_origin.get_resource_by_id(component_id) {
             Some(resource_ptr) => {
-                info!("Found resource in world, serializing...");
                 // Serialize the resource
                 let serialized_resource = (registration.serialize_fn)(resource_ptr);
-                info!("Serialized resource size: {}", serialized_resource.len());
                 Some(serialized_resource)
             },
             None => {

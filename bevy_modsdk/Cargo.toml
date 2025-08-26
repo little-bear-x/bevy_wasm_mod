@@ -1,0 +1,7 @@
+[package]
+name = "bevy_modsdk"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+bevy_modsdk_macros = { path = "../bevy_modsdk_macros" }

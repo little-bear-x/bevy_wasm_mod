@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 use bevy::log::{debug, error, info, warn};
-use modtypes::SystemInfo;
+use bevy_modtypes::SystemInfo;
 use std::mem;
 use wasmtime::{Instance, Result, Store, TypedFunc};
 

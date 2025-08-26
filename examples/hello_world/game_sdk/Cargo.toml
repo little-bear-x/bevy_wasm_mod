@@ -5,5 +5,5 @@ version.workspace = true
 
 [dependencies]
 bevy_math = { version = "0.16", features = ['serialize'] }
-modsdk = { path = "../../../modsdk" }
+bevy_modsdk = { path = "../../../bevy_modsdk" }
 serde = { workspace = true }
