@@ -12,6 +12,11 @@ use bevy_math::{Vec2, IVec2};
 #[system(schedule = Startup)]
 pub fn example_startup_system() {
     log_info!("Startup system running from mod");
+    
+    // Define an asset and get its ID
+    let asset_id = asset_def!(type=text, src="example_asset.txt");
+    log_info!("Defined asset with ID: {}", asset_id);
+    
     spawn!(Square(Vec2 { x: 100.0, y: 120.6 }), Rect(IVec2 { x: 60, y: 66 }));
     spawn!(Square(Vec2 { x: 100.0, y: 120.3 }), Rect(IVec2 { x: 60, y: 88 }));
 }

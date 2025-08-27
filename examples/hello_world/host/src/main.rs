@@ -5,7 +5,9 @@
 //! and coordinating communication between mods and the main game.
 
 use bevy::{log::LogPlugin, prelude::*};
-use bevy_modruntime::{COMPONENT_REGISTRY, RESOURCE_REGISTRY, WasmModPlugin, mod_component, mod_resource};
+use bevy_modruntime::{
+    AssetInfo, COMPONENT_REGISTRY, RESOURCE_REGISTRY, WasmModPlugin, mod_component, mod_resource,
+};
 
 #[mod_component(id = "square")]
 #[derive(Component, Debug)]
@@ -35,21 +37,43 @@ fn print_resource_registry() {
 
 fn spawn_example_component(mut commands: Commands) {
     commands.spawn((Square(Vec2 { x: 0.0, y: 1.0 }), Rect(IVec2 { x: 3, y: 4 })));
-    commands.spawn((Square(Vec2 { x: 2.0, y: 3.6 }), Rect(IVec2 { x: 32, y: 48 })));
+    commands.spawn((
+        Square(Vec2 { x: 2.0, y: 3.6 }),
+        Rect(IVec2 { x: 32, y: 48 }),
+    ));
 }
 
 fn insert_example_resource(mut commands: Commands) {
     commands.insert_resource(Player(Vec2 { x: 10.0, y: 20.0 }));
 }
 
+/// Handle new asset from mod
+fn handle_new_asset(_world: &mut World, asset_info: AssetInfo) -> String {
+    info!("New asset from mod:");
+    info!("  Mod name: {}", asset_info.mod_name);
+    info!("  Asset type: {}", asset_info.asset_type);
+    info!(
+        "  Asset data: {}",
+        String::from_utf8_lossy(&asset_info.asset_data)
+    );
+
+    // For now, just return an empty string as the asset ID
+    // In a real implementation, you would generate a unique ID for the asset
+    String::new()
+}
+
 fn main() {
     App::new()
-        .add_plugins(MinimalPlugins)
+        // .add_plugins(MinimalPlugins)
         .add_plugins(LogPlugin::default())
-        .add_plugins(WasmModPlugin::default().add_mod_path(
-            // replace this to your path
-            "/home/PulseX/Projects/bevy_wasm_mod/target/wasm32-wasip1/debug/game_mod.wasm",
-        ))
+        .add_plugins(
+            WasmModPlugin::default()
+                .add_mod_path(
+                    // replace this to your path
+                    "/home/PulseX/Projects/bevy_wasm_mod/target/wasm32-wasip1/debug/game_mod.wasm",
+                )
+                .set_new_asset_fn(handle_new_asset),
+        )
         .add_systems(Startup, print_component_registry)
         .add_systems(Startup, print_resource_registry)
         .add_systems(Startup, spawn_example_component)

@@ -3,6 +3,7 @@
 //! This crate provides the runtime for loading and executing Bevy mods.
 //! It handles WebAssembly sandboxing and communication between mods and the host application.
 
+pub mod asset;
 pub mod component;
 pub mod log;
 pub mod query;
@@ -24,6 +25,9 @@ use wasmtime::{Engine, Instance, Linker, Module, Store};
 use wasmtime_wasi::WasiCtxBuilder;
 use wasmtime_wasi::preview1::WasiP1Ctx;
 
+// Re-export asset handle
+pub use asset::{AssetInfo, host_handle_define_asset};
+
 // Re-export log handle
 pub use log::host_handle_log;
 
@@ -37,7 +41,7 @@ pub use query::host_handle_query_components;
 pub use resource::{RESOURCE_REGISTRY, ResourceRegistration, host_handle_query_resources};
 
 // Re-export system handle
-pub use system::{ModSystems, execute_mod_update_systems, execute_mod_startup_systems};
+pub use system::{ModSystems, execute_mod_startup_systems, execute_mod_update_systems};
 
 // Re-export spawn functionality
 pub use spawn::host_handle_spawn_entities;
@@ -52,13 +56,16 @@ use crate::system::ModSystemSchedule;
 #[derive(Debug, Resource, Clone)]
 pub struct WasmModPlugin {
     /// All mod we will load.
-    pub mod_paths: Vec<String>,
+    mod_paths: Vec<String>,
+    /// Call while insert new asset, return the asset id
+    new_asset_fn: fn(&mut World, AssetInfo) -> String,
 }
 
 impl Default for WasmModPlugin {
     fn default() -> Self {
         Self {
             mod_paths: Vec::new(),
+            new_asset_fn: |_, _| String::from(""),
         }
     }
 }
@@ -73,6 +80,12 @@ impl WasmModPlugin {
     /// Sets the list of mod paths to load
     pub fn set_mod_paths(mut self, paths: Vec<String>) -> Self {
         self.mod_paths = paths;
+        self
+    }
+
+    /// Set the new asset fn while plugin onload
+    pub fn set_new_asset_fn(mut self, func: fn(&mut World, AssetInfo) -> String) -> Self {
+        self.new_asset_fn = func;
         self
     }
 }
@@ -107,9 +120,12 @@ pub struct LoadedMod {
 
 /// Wasm state of mod
 pub struct ModState {
+    /// Ref to mod wasi ctx
     wasi_ctx: Arc<Mutex<UnsafeCell<WasiP1Ctx>>>,
-    /// Reference to the Bevy world for component queries
+    /// Ref to the Bevy world for component queries
     world: Option<Arc<UnsafeWorldCell<'static>>>,
+    /// Ref to fn call while insert new asset
+    new_asset_fn: Option<fn(&mut World, AssetInfo) -> String>,
 }
 
 impl ModState {
@@ -117,6 +133,7 @@ impl ModState {
         Self {
             wasi_ctx: Arc::new(Mutex::new(UnsafeCell::new(wasi_ctx))),
             world: None,
+            new_asset_fn: None,
         }
     }
 
@@ -136,6 +153,22 @@ impl ModState {
         match self.world.clone() {
             Some(world) => Some(*world),
             None => None,
+        }
+    }
+
+    /// Set new asset fn
+    pub fn set_new_asset_fn(&mut self, func: fn(&mut World, AssetInfo) -> String) {
+        self.new_asset_fn = Some(func);
+    }
+
+    /// Run new asset fn
+    pub fn run_new_asset_fn(&self, world: &mut World, asset_info: AssetInfo) -> anyhow::Result<String> {
+        match self.new_asset_fn {
+            Some(func) => {
+                let asset_id = (func)(world, asset_info);
+                anyhow::Ok(asset_id)
+            }
+            None => Err(anyhow::anyhow!("Handle new asset fn is none")),
         }
     }
 }
@@ -222,13 +255,22 @@ fn load_all_mod(
             }
         };
 
+        // Add define asset function
+        match linker.func_wrap("env", "__mod_define_asset", host_handle_define_asset) {
+            Ok(_) => {}
+            Err(e) => {
+                error!("Error in link mod '{}' __mod_define_asset: {}", mod_path, e);
+            }
+        };
+
         // wasi ctx
-        let mod_state = ModState::new(
+        let mut mod_state = ModState::new(
             WasiCtxBuilder::new()
                 .inherit_env()
                 .args(&[mod_path])
                 .build_p1(),
         );
+        mod_state.set_new_asset_fn(r_mod.new_asset_fn);
 
         // Create a store
         let store = Store::new(&engine, mod_state);

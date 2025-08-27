@@ -1,8 +1,9 @@
 //! Bevy Mod API
 //!
-//! This crate provides the API for creating Bevy mods.
-//! Mod developers will use this crate to create their mods.
+//! This crate provides the API for Bevy mods.
+//! Mods can use these APIs to interact with the host game.
 
+pub mod asset;
 pub mod log;
 pub mod query;
 pub mod resource;
@@ -41,4 +42,20 @@ unsafe extern "C" {
 
     /// Free memory allocated by the host
     pub fn __mod_free_memory(ptr: *mut u8, len: usize);
+
+    /// Define an asset in the host
+    /// Returns the asset ID through parameters
+    pub fn __mod_define_asset(
+        mod_name_ptr: *const u8,
+        mod_name_len: usize,
+        asset_type_ptr: *const u8,
+        asset_type_len: usize,
+        asset_data_ptr: *const u8,
+        asset_data_len: usize,
+        asset_id_ptr: *mut u8,
+        asset_id_len: usize,
+    ) -> usize;
+
+    /// Get mod name
+    pub fn __mod_get_name() -> *const u8;
 }

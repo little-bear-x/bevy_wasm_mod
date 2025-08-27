@@ -9,14 +9,14 @@
 - 让游戏本体开发者尽可能少写代码
 
 ## 项目进度
-- [ - ] 宏解析
-- [ - ] 添加mod系统
-- [ - ] mod系统对host组件的查询
+- [ x ] 宏解析
+- [ x ] 添加mod系统
+- [ x ] mod系统对host组件的查询
 - [ ] mod系统对host组件的修改
-- [ - ] mod读取host资源
+- [ x ] mod读取host资源
 - [ ] mod修改host资源
 - [ ] host与mod共享事件
-- [ ] 通过mod添加asset(如图片等)
+- [ x ] 通过mod添加资产(如图片等)
 - [ ] 为mod开发者提供工具链
 
 # 快速开始
@@ -29,7 +29,7 @@
 cargo +1.86 build --target wasm32-wasip1
 ```
 
-* note: rust的最新stable版本目前似乎无法编译到wasm32-wasip1目标平台，这里将暂时使用1.86进行编译，可能会被修复。 *
+*note: rust的最新stable版本目前似乎无法编译到wasm32-wasip1目标平台，这里将暂时使用1.86进行编译，可能会被修复。*
 
 ## 修改host中mod的文件路径
 修改`host/src/main.rs`文件中的mod的wasm路径为正确路径
@@ -41,4 +41,4 @@ cargo +1.86 build --target wasm32-wasip1
 cargo run
 ```
 
-* note: 支持使用动态链接 *
+*note: 支持使用动态链接*

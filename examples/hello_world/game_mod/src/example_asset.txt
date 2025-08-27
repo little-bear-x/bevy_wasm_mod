@@ -1,0 +1,1 @@
+This is an example asset file for the Bevy WASM mod example.
