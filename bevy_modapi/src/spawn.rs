@@ -35,7 +35,7 @@ macro_rules! spawn {
 
             // Call the host function to spawn entities
             unsafe {
-                __mod_spawn_entities(
+                bevy_modapi::__mod_spawn_entities(
                     serialized_components.as_ptr(),
                     serialized_components.len(),
                 );

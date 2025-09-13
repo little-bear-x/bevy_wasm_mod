@@ -7,7 +7,7 @@ macro_rules! log_debug {
             use std::ffi::CString;
             let c_str = CString::new(msg).expect("CString::new failed");
             unsafe {
-                __mod_log(c_str.as_ptr() as *const u8, c_str.as_bytes().len(), 0);
+                bevy_modapi::__mod_log(c_str.as_ptr() as *const u8, c_str.as_bytes().len(), 0);
             }
         }
     };
@@ -22,7 +22,7 @@ macro_rules! log_info {
             use std::ffi::CString;
             let c_str = CString::new(msg).expect("CString::new failed");
             unsafe {
-                __mod_log(c_str.as_ptr() as *const u8, c_str.as_bytes().len(), 1);
+                bevy_modapi::__mod_log(c_str.as_ptr() as *const u8, c_str.as_bytes().len(), 1);
             }
         }
     };
@@ -37,7 +37,7 @@ macro_rules! log_warn {
             use std::ffi::CString;
             let c_str = CString::new(msg).expect("CString::new failed");
             unsafe {
-                __mod_log(c_str.as_ptr() as *const u8, c_str.as_bytes().len(), 2);
+                bevy_modapi::__mod_log(c_str.as_ptr() as *const u8, c_str.as_bytes().len(), 2);
             }
         }
     };
@@ -52,7 +52,7 @@ macro_rules! log_error {
             use std::ffi::CString;
             let c_str = CString::new(msg).expect("CString::new failed");
             unsafe {
-                __mod_log(c_str.as_ptr() as *const u8, c_str.as_bytes().len(), 3);
+                bevy_modapi::__mod_log(c_str.as_ptr() as *const u8, c_str.as_bytes().len(), 3);
             }
         }
     };

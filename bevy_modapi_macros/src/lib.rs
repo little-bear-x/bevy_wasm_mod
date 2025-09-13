@@ -46,14 +46,14 @@ pub fn system(args: TokenStream, input: TokenStream) -> TokenStream {
 
         // Get system info
         #[unsafe(no_mangle)]
-        pub extern "C" fn #info_fn_name() -> *const SystemInfo {
+        pub extern "C" fn #info_fn_name() -> *const bevy_modapi::SystemInfo {
             // Use a static variable to store the SystemInfo to ensure it lives long enough
-            static mut SYSTEM_INFO: Option<SystemInfo> = None;
+            static mut SYSTEM_INFO: Option<bevy_modapi::SystemInfo> = None;
             static INIT: std::sync::Once = std::sync::Once::new();
 
             unsafe {
                 INIT.call_once(|| {
-                    let mut info = SystemInfo {
+                    let mut info = bevy_modapi::SystemInfo {
                         export_name: [0; 64],
                         schedule: #schedule,
                     };
@@ -67,7 +67,7 @@ pub fn system(args: TokenStream, input: TokenStream) -> TokenStream {
                     SYSTEM_INFO = Some(info);
                 });
 
-                SYSTEM_INFO.as_ref().unwrap() as *const SystemInfo
+                SYSTEM_INFO.as_ref().unwrap() as *const bevy_modapi::SystemInfo
             }
         }
     };

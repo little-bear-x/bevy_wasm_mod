@@ -33,7 +33,7 @@ pub fn mod_component(args: TokenStream, input: TokenStream) -> TokenStream {
         #derive_input
 
         // Component registration
-        #[linkme::distributed_slice(COMPONENT_REGISTRY)]
+        #[linkme::distributed_slice(bevy_modruntime::COMPONENT_REGISTRY)]
         #[warn(non_upper_case_globals)]
         static #static_ident: bevy_modruntime::component::ComponentRegistration =
             bevy_modruntime::component::ComponentRegistration {
